@@ -52,8 +52,8 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Root API Welcome endpoint
-app.get('/', (req, res) => {
+// Root & Base API Welcome endpoint
+app.get(['/', '/api'], (req, res) => {
   res.status(200).json({
     success: true,
     message: 'TemplateHub Backend REST API is running',
