@@ -52,6 +52,21 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Root API Welcome endpoint
+app.get('/', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'TemplateHub Backend REST API is running',
+    version: '1.0.0',
+    endpoints: {
+      health: '/api/health',
+      templates: '/api/templates',
+      auth: '/api/auth',
+      favorites: '/api/favorites',
+    },
+  });
+});
+
 // Health Check API
 app.get('/api/health', (req, res) => {
   res.status(200).json({
