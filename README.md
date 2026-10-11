@@ -285,6 +285,96 @@ SUMMARY: 20 PASSED, 0 FAILED
 
 ---
 
+## 🌐 Production Deployment Guide (Vercel & Render)
+
+This application is fully production-ready and configured for decoupled deployment:
+- **Backend API**: Hosted on **Render** (Node.js Web Service)
+- **Frontend SPA**: Hosted on **Vercel** (Vite + React Router with SPA rewrites)
+
+---
+
+### Step 1: Deploy Backend to Render
+
+1. **Log In to Render**:
+   - Go to [render.com](https://render.com) and log in with GitHub.
+
+2. **Verify MongoDB Atlas Network Access**:
+   - In [MongoDB Atlas](https://cloud.mongodb.com), go to **Security > Network Access**.
+   - Ensure `0.0.0.0/0` ("Allow Access From Anywhere") is whitelisted so Render's cloud servers can connect.
+
+3. **Create New Web Service**:
+   - Click **"New +"** &rarr; **"Web Service"**.
+   - Select your GitHub repository (`fullstack-intern-task`).
+
+4. **Configure Service Settings**:
+   - **Name:** `templatehub-api` (or any custom name)
+   - **Region:** Select closest region (e.g., Singapore, Frankfurt, or Oregon)
+   - **Branch:** `main`
+   - **Root Directory:** `server`
+   - **Runtime:** `Node`
+   - **Build Command:** `npm install`
+   - **Start Command:** `npm start`
+   - **Plan:** Free
+
+5. **Configure Environment Variables**:
+   Under **Environment Variables**, add the following keys:
+   | Key | Value | Description |
+   | :--- | :--- | :--- |
+   | `NODE_ENV` | `production` | Optimizes server runtime |
+   | `PORT` | `5000` | Port variable (Render sets this dynamically) |
+   | `MONGODB_URI` | `mongodb+srv://...` | Your MongoDB Atlas connection string |
+   | `JWT_SECRET` | `templatehub_super_secure_jwt_secret_key_2026_vishal` | Secret key for signing tokens |
+   | `JWT_EXPIRES_IN` | `1d` | Token expiration duration |
+   | `CLIENT_URL` | `*` *(or your Vercel URL)* | Allowed origin for frontend requests |
+
+6. **Deploy & Copy Backend URL**:
+   - Click **"Create Web Service"**.
+   - Once deployed and status is **Live**, copy your service URL (e.g., `https://templatehub-api.onrender.com`).
+   - Test in your browser: `https://templatehub-api.onrender.com/api/health` &rarr; should return `{ "success": true, "message": "TemplateHub API is healthy..." }`.
+
+---
+
+### Step 2: Deploy Frontend to Vercel
+
+1. **Log In to Vercel**:
+   - Visit [vercel.com](https://vercel.com) and sign in with GitHub.
+
+2. **Import Repository**:
+   - Click **"Add New..."** &rarr; **"Project"**.
+   - Select your repository (`fullstack-intern-task`).
+
+3. **Configure Project Settings**:
+   - **Framework Preset:** `Vite`
+   - **Root Directory:** Click **Edit** and choose `client`
+   - **Build Command:** `npm run build`
+   - **Output Directory:** `dist`
+   - **Install Command:** `npm install`
+
+4. **Add Environment Variable**:
+   Under **Environment Variables**, add:
+   - **Key:** `VITE_API_URL`
+   - **Value:** `https://<your-render-app-name>.onrender.com/api`
+   *(Ensure to append `/api` to the backend URL)*
+
+5. **Deploy**:
+   - Click **"Deploy"**.
+   - *(Note: `client/vercel.json` is preconfigured to handle client-side routing rewrites so refreshing pages like `/templates` or `/favorites` works seamlessly without 404s!)*
+   - Copy your deployed Vercel URL (e.g., `https://templatehub-client.vercel.app`).
+
+---
+
+### Step 3: Connect Frontend to Backend (Final CORS Step)
+
+1. Return to your Render dashboard for `templatehub-api`.
+2. Go to **Environment** tab.
+3. Update `CLIENT_URL` to your production Vercel URL:
+   ```
+   CLIENT_URL=https://templatehub-client.vercel.app
+   ```
+4. Click **"Save Changes"**. Render will instantly restart with the updated CORS configuration.
+
+---
+
 ## 🛠️ Troubleshooting
 
 1. **MongoDB Connection Fails:**

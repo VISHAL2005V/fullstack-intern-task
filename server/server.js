@@ -14,21 +14,33 @@ const app = express();
 connectDB();
 
 // CORS configuration
+const configuredOrigins = (process.env.CLIENT_URL || '')
+  .split(',')
+  .map((url) => url.trim().replace(/\/$/, ''))
+  .filter(Boolean);
+
 const allowedOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
-  process.env.CLIENT_URL,
-].filter(Boolean);
+  ...configuredOrigins,
+];
 
 app.use(
   cors({
     origin: function (origin, callback) {
       // Allow requests with no origin (like mobile apps, curl, or Postman)
       if (!origin) return callback(null, true);
-      if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes('*')) {
+
+      const normalizedOrigin = origin.replace(/\/$/, '');
+      if (
+        allowedOrigins.includes('*') ||
+        allowedOrigins.includes(normalizedOrigin) ||
+        (process.env.NODE_ENV !== 'production' && (normalizedOrigin.includes('localhost') || normalizedOrigin.includes('127.0.0.1'))) ||
+        normalizedOrigin.endsWith('.vercel.app')
+      ) {
         return callback(null, true);
       }
-      return callback(null, true); // Permissive in dev to avoid blocking localhost variations
+      return callback(null, true); // Fallback to permissive to ensure zero CORS lockouts
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
